@@ -1,0 +1,15 @@
+keystore.jks
+*.iml
+*~
+*.0
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+How
+Todo
+README.html
+test.html

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Root FrameLayout: gets the system bar / keyboard insets, see
+     ProviderActivity.applySystemBarInsets() -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.island.androidsftpdocumentsprovider.MainActivity">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:title="@string/app_name" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/content_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                android:paddingTop="8dp"
+                android:paddingBottom="96dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/file_browser"
+                    style="@style/Widget.Material3.Button.Icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="browseFiles"
+                    android:text="@string/file_browser"
+                    app:icon="@drawable/ic_folder_open" />
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Material3.CardView.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="8dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="8dp"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="4dp"
+                            android:text="@string/ssh_key"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/generate_keypair"
+                            style="@style/Widget.SFTP.Button.CardAction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:onClick="generateKey"
+                            android:text="@string/generate_key"
+                            app:icon="@drawable/ic_vpn_key" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/share_public_key"
+                            style="@style/Widget.SFTP.Button.CardAction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:onClick="sharePublicKey"
+                            android:text="@string/share_public_key"
+                            app:icon="@drawable/ic_share" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/import_certificate"
+                            style="@style/Widget.SFTP.Button.CardAction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:onClick="importCertificate"
+                            android:text="@string/import_certificate"
+                            app:icon="@drawable/ic_upload_file" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="8dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="@string/accounts"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorPrimary" />
+
+                <!-- Not a huge list, so it simply grows and scrolls together
+                     with the rest of the page -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/sftp_accounts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never"
+                    tools:itemCount="3"
+                    tools:listitem="@layout/sftp_item" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_account_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:contentDescription="@string/add_account"
+            android:onClick="addSftpAccount"
+            app:srcCompat="@drawable/ic_add" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>

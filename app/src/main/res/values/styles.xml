@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Full width, left aligned text button with a leading icon. Used for
+         the actions inside the "SSH key" card. -->
+    <style name="Widget.SFTP.Button.CardAction" parent="Widget.Material3.Button.TextButton.Icon">
+        <item name="android:gravity">start|center_vertical</item>
+        <item name="android:textAlignment">viewStart</item>
+        <!-- the M3 text button is capped at 320dp, which looks odd on tablets -->
+        <item name="android:maxWidth">1000dp</item>
+        <item name="iconPadding">16dp</item>
+    </style>
+</resources>

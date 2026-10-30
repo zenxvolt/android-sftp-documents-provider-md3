@@ -1,0 +1,9 @@
+SFTP-SAF is a Storage Access Framework (SAF) documents provider for accessing data via SFTP.
+
+It allows you to directly view or edit data on an sftp server using Android's file manager, or any SAF capable application's file picker.
+
+* No root is required
+* It allows other apps to open and edit documents on the sftp server
+* Read help online: https://github.com/AlainKnaff/Android-SFTP-Documents-Provider
+
+SFTP-SAF is a fork of a software initially developped by Riccardo Isola.

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 colour scheme (light). Generated from the launcher orange #FF8900 with the "tonal spot" variant, see Material Theme Builder. -->
+    <color name="md_theme_primary">#89511F</color>
+    <color name="md_theme_on_primary">#FFFFFF</color>
+    <color name="md_theme_primary_container">#FFDCC4</color>
+    <color name="md_theme_on_primary_container">#6C3A08</color>
+    <color name="md_theme_secondary">#745944</color>
+    <color name="md_theme_on_secondary">#FFFFFF</color>
+    <color name="md_theme_secondary_container">#FFDCC4</color>
+    <color name="md_theme_on_secondary_container">#5B412F</color>
+    <color name="md_theme_tertiary">#5D6236</color>
+    <color name="md_theme_on_tertiary">#FFFFFF</color>
+    <color name="md_theme_tertiary_container">#E2E7AF</color>
+    <color name="md_theme_on_tertiary_container">#454A21</color>
+    <color name="md_theme_error">#BA1A1A</color>
+    <color name="md_theme_on_error">#FFFFFF</color>
+    <color name="md_theme_error_container">#FFDAD6</color>
+    <color name="md_theme_on_error_container">#93000A</color>
+    <color name="md_theme_background">#FFF8F5</color>
+    <color name="md_theme_on_background">#221A14</color>
+    <color name="md_theme_surface">#FFF8F5</color>
+    <color name="md_theme_on_surface">#221A14</color>
+    <color name="md_theme_surface_variant">#F3DFD2</color>
+    <color name="md_theme_on_surface_variant">#51443B</color>
+    <color name="md_theme_outline">#84746A</color>
+    <color name="md_theme_outline_variant">#D6C3B7</color>
+    <color name="md_theme_inverse_surface">#382F28</color>
+    <color name="md_theme_inverse_on_surface">#FEEEE4</color>
+    <color name="md_theme_inverse_primary">#FFB780</color>
+    <color name="md_theme_surface_dim">#E7D7CE</color>
+    <color name="md_theme_surface_bright">#FFF8F5</color>
+    <color name="md_theme_surface_container_lowest">#FFFFFF</color>
+    <color name="md_theme_surface_container_low">#FFF1E9</color>
+    <color name="md_theme_surface_container">#FBEBE1</color>
+    <color name="md_theme_surface_container_high">#F5E5DC</color>
+    <color name="md_theme_surface_container_highest">#EFDFD6</color>
+</resources>

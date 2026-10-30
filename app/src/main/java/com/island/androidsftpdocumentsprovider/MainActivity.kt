@@ -1,0 +1,255 @@
+package com.island.androidsftpdocumentsprovider
+
+/* This file is part of SFTP-SAF, an Android app to access sftp servers via Storage access framework
+   Copyright (C) 2025,2026 Alain Knaff
+
+   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import android.util.Log
+import android.content.ContentResolver
+import android.content.Intent
+import android.content.ComponentName
+import android.os.Build
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
+import android.annotation.SuppressLint
+import androidx.core.net.toUri
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+
+import com.island.util.ErrorDialog
+import com.island.androidsftpdocumentsprovider.provider.ProviderActivity
+import com.island.androidsftpdocumentsprovider.account.AccountWithRemove
+import com.island.androidsftpdocumentsprovider.account.TheDatabase
+import com.island.androidsftpdocumentsprovider.account.AuthenticationActivity
+
+import lu.knaff.alain.saf_sftp.R
+import com.island.sftp.Keygen
+
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
+
+import kotlinx.coroutines.launch
+
+class MainActivity : ProviderActivity()
+{
+    private val TAG="MainActivity"
+
+    private val dao by lazy { TheDatabase.getDao(applicationContext) }
+
+    private fun fixButtonState() {
+        val share: Button  = findViewById(R.id.share_public_key)
+        val importCertificate: Button  = findViewById(R.id.import_certificate)
+        val generate: Button  = findViewById(R.id.generate_keypair)
+        if(Keygen.haveKey(this)) {
+            share.isEnabled = true
+            importCertificate.isEnabled = true
+            generate.setText(R.string.regenerate_key)
+        } else {
+            share.isEnabled = false
+            importCertificate.isEnabled = false
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?)
+    {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.main)
+        applySystemBarInsets(findViewById(R.id.root))
+
+        val recyclerView=findViewById<RecyclerView>(R.id.sftp_accounts)
+        recyclerView.adapter=SFTPAdapter()
+        recyclerView.layoutManager=LinearLayoutManager(this)
+        fixButtonState()
+    }
+
+    fun browseFiles(ignoredView:View)
+    {
+        val intent = Intent(Intent.ACTION_VIEW,null)
+        for(packge in arrayOf("com.google.android.documentsui",
+                              "com.android.documentsui")) {
+            try {
+                intent.component = ComponentName(packge,
+                                                 "com.android.documentsui.files.FilesActivity")
+                intent.data = ("content://"+getAuthority()+
+                                   "/root").toUri()
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                startActivity(intent)
+                return
+            } catch(e: Exception) {
+                Log.e(TAG, "Exception while opening file browser", e)
+            }
+        }
+        MaterialAlertDialogBuilder(this)
+            .setMessage(R.string.no_documentsui)
+            .setPositiveButton(R.string.ok) { d, w -> d.dismiss() }
+            .show()
+    }
+
+    fun addSftpAccount(ignoredView:View)
+    {
+        val intent:Intent = Intent(this, AuthenticationActivity::class.java)
+        startActivity(intent)
+    }
+
+    fun editSftpAccount(ignoredView:View, account:AccountWithRemove)
+    {
+        val intent:Intent = Intent(this, AuthenticationActivity::class.java)
+        intent.putExtra(AuthenticationActivity.ID_COL, account.id)
+        startActivity(intent)
+    }
+
+    fun generateKey(ignoredView: View) {
+        if(Keygen.haveKey(this)) {
+            // pop up a dialog
+            MaterialAlertDialogBuilder(this)
+                .setMessage(R.string.keygen_confirm)
+                .setPositiveButton(R.string.yes) { d, w -> generateKey2() }
+                .setNegativeButton(R.string.no) { d, w  ->d.dismiss() }
+                .show()
+        } else {
+            generateKey2()
+        }
+    }
+
+    val keyTypes = arrayOf("RSA",
+                           "ED25519",
+                           "ECDSA"
+    )
+
+    private fun generateKey2() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Choose a key type")
+            .setSingleChoiceItems(keyTypes, 1) {
+                dialog, which -> generateKey3(keyTypes[which])
+                                 dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun generateKey3(algo: String) {
+        Keygen.genKey(this, algo)
+        fixButtonState()
+    }
+
+    fun sharePublicKey(ignoredView: View) {
+        Keygen.shareKey(this)
+    }
+
+    private val importCertificateLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) {
+            uri: Uri? -> uri ?: return@registerForActivityResult
+
+            lifecycleScope.launch {
+                try {
+                    contentResolver.openInputStream(uri)?.use {
+                        Keygen.storeCertificate(this@MainActivity, it)
+                    }
+                } catch(e: Exception) {
+                    ErrorDialog.showError(this@MainActivity,
+                                          "Cannot import ssh user certificate",e)
+                }
+            }
+        }
+
+    fun importCertificate(ignoredView: View) {
+        importCertificateLauncher.launch(arrayOf("*/*"))
+    }
+
+    override fun onResume()
+    {
+        super.onResume()
+        (findViewById<RecyclerView>(R.id.sftp_accounts).adapter as SFTPAdapter).updateData()
+    }
+
+    inner class SFTPAdapter :RecyclerView.Adapter<SFTPAdapter.ViewHolder>()
+    {
+        private val TAG="SFTPAdapter"
+        private var accounts =dao.getAllAccountsWithRemove()
+        inner class ViewHolder(view:View):RecyclerView.ViewHolder(view),
+                                          View.OnClickListener
+        {
+            private val TAG="SFTPAdapter.ViewHolder"
+            val text:TextView = view.findViewById(R.id.text)
+            val secondaryText:TextView = view.findViewById(R.id.secondary_text)
+            val button:Button = view.findViewById(R.id.button)
+            lateinit var account:AccountWithRemove
+
+            init {
+                // the whole card is clickable (gives the ripple); the
+                // texts must not consume the touch themselves
+                view.setOnClickListener(this)
+            }
+
+            override fun onClick(view: View)
+            {
+                editSftpAccount(view,account)
+            }
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder
+        {
+            val view=LayoutInflater.from(parent.context).inflate(R.layout.sftp_item,parent,false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int)
+        {
+            val account=accounts[position]
+            holder.text.text=account.getUsedDisplayName()
+            // when a display name is set, show user@host:port below it
+            if(account.displayName.isNullOrEmpty()) {
+                holder.secondaryText.visibility = View.GONE
+            } else {
+                holder.secondaryText.text = account.name
+                holder.secondaryText.visibility = View.VISIBLE
+            }
+            holder.account=account
+            holder.button.visibility = if (account.canRemove)
+                View.VISIBLE else View.INVISIBLE
+            holder.button.setOnClickListener()
+            {
+                try {
+                    val oldName=account.name
+                    dao.deleteAccount(account.id)
+                    var flags=0
+                    if(Build.VERSION.SDK_INT>=30)
+                        flags = flags or ContentResolver.NOTIFY_DELETE
+                    notifyChange(flags)
+                    updateData()
+                } catch(e: Exception) {
+                    ErrorDialog.showError(this@MainActivity,
+                                          "Error removing account",
+                                          e)
+                }
+            }
+        }
+
+        override fun getItemCount(): Int
+        {
+            return accounts.size
+        }
+
+        fun updateData()
+        {
+            accounts=dao.getAllAccountsWithRemove()
+            @SuppressLint("NotifyDataSetChanged")
+            // not a huge list, and sometimes we cannot indeed
+            // describe which position has changed exactly, such as
+            // when *adding* a new item
+            notifyDataSetChanged()
+        }
+    }
+}

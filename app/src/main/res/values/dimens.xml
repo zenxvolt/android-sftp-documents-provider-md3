@@ -1,0 +1,9 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- Side padding of the scrolling content; grows on wide screens so that
+         forms and lists do not stretch edge to edge (see values-w600dp, -w840dp) -->
+    <dimen name="screen_padding_horizontal">16dp</dimen>
+</resources>
