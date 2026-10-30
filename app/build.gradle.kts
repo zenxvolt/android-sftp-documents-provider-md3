@@ -8,7 +8,7 @@ android {
     compileSdk = 37
     namespace="lu.knaff.alain.saf_sftp"
     defaultConfig {
-        applicationId = "lu.knaff.alain.saf_sftp"
+        applicationId = "zen.sftp.saf"
         minSdk = 26
 	// Min SDK Version is greater than 24, in order to be able to disable v1 signing
 	// Min SDK Version is 26, for ProxyFileDescriptorCallback
