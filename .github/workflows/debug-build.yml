@@ -7,6 +7,8 @@ on:
 jobs:
   debug_build:
     runs-on: ubuntu-latest
+    env:
+      DEBUG_KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_B64 }}
     steps:
       - uses: actions/checkout@v6
 
@@ -20,6 +22,14 @@ jobs:
       # files uploaded through the GitHub web UI lose their executable bit
       - name: Make gradlew executable
         run: chmod +x gradlew
+
+      # Same signing key on every build, so a new APK can be installed over
+      # the previous one. Without the secret a fresh random key is used.
+      - name: Restore fixed debug keystore
+        if: env.DEBUG_KEYSTORE_B64 != ''
+        run: |
+          mkdir -p ~/.android
+          echo "$DEBUG_KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
 
       - name: Build debug APK
         run: ./gradlew assembleDebug
