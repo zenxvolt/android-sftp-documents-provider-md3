@@ -597,15 +597,15 @@ public class SFTPProvider extends DocumentsProvider
             String documentId=sftp.getDocumentId(new File(parent,
 							  base+seq+extension));
             SftpFile file=sftp.getFile(documentId);
-            try {
-                sftp.lastModified(file);
+            // Ask the server, not the attribute cache: a cached entry may
+            // describe a file that has since been deleted or renamed
+            if(sftp.existsOnServer(file)) {
                 cnt++;
                 continue;
-            } catch(FileNotFoundException e) {
-                if(documentIdP != null)
-                    documentIdP[0] = documentId;
-                return file;
             }
+            if(documentIdP != null)
+                documentIdP[0] = documentId;
+            return file;
         }
     }
 

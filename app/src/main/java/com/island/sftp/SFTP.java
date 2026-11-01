@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Vector;
 import java.io.File;
 import java.io.InputStream;
@@ -57,7 +58,7 @@ public class SFTP extends SSH implements Closeable
 	private ChannelSftp channel;
 	private boolean disconnected;
 
-	private final Map<String,SftpFile> files = new HashMap<>();
+	private final Map<String,SftpFile> files = new ConcurrentHashMap<>();
 
 	public static @NonNull String accountToDocumentId(@NonNull Account account) {
 	  	return account.getName();
@@ -243,6 +244,30 @@ public class SFTP extends SSH implements Closeable
 			throw getException(e);
 		}
 	}
+	/**
+	 * Forget cached attributes of a path and of everything below it
+	 * (after delete or rename), so later lookups ask the server again.
+	 */
+	private void evict(@NonNull String path)
+	{
+		final String prefix = path.endsWith("/") ? path : path + "/";
+		files.keySet().removeIf(k -> k.equals(path) || k.startsWith(prefix));
+	}
+	/**
+	 * Ask the server (bypassing cached attributes) whether a file exists.
+	 * Refreshes the cached attributes if it does, clears them if it does not.
+	 */
+	public synchronized boolean existsOnServer(@NonNull SftpFile file)
+		throws IOException
+	{
+		try {
+			listFile(file);
+			return true;
+		} catch(FileNotFoundException e) {
+			file.invalidate();
+			return false;
+		}
+	}
 	public synchronized void delete(@NonNull SftpFile file)
 		throws IOException
 	{
@@ -255,6 +280,7 @@ public class SFTP extends SSH implements Closeable
 				channel.rmdir(file.getPath());
 			} else
 				channel.rm(file.getPath());
+			evict(file.getPath());
 		} catch(JSchException e) {
 			throw getException(e);
 		} catch(SftpException e) {
@@ -297,6 +323,8 @@ public class SFTP extends SSH implements Closeable
 		try {
 			reconnectIfNeeded();
 			channel.rename(oldPath.getPath(),newPath.getPath());
+			evict(oldPath.getPath());
+			evict(newPath.getPath());
 		} catch(JSchException e) {
 			throw getException(e);
 		} catch(SftpException e) {

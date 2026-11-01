@@ -67,6 +67,15 @@ public class SftpFile extends File {
 	return isDirectory;
     }
 
+    /**
+     * Forget all cached attributes (file no longer known to exist)
+     */
+    void invalidate() {
+        lastModified = -1;
+        size = -1;
+        isDirectory = null;
+    }
+
     SftpFile(File parent, String filename, SftpATTRS attributes) {
 	super(parent, filename);
         setAttrs(attributes);
